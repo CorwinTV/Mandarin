@@ -51,8 +51,6 @@ Vendored under `docs/vendor/` (no runtime CDN). GitHub Pages serves `docs/`.
 
 ```markdown
 ## Project layout
-
-```text
 mandarin/
 ├── docs/                 # GitHub Pages root
 │   ├── index.html        # Upload
@@ -66,7 +64,7 @@ mandarin/
 │   ├── mp3-hifi/         # Pack samples (game-derived)
 │   └── img/
 └── mandachord_core/      # Rust sources (optional rebuild)
-
+```
 
 Local previewServe the docs folder over HTTP (modules / WASM need a server):
 
