@@ -72,9 +72,11 @@ Local previewServe the docs folder over HTTP (modules / WASM need a server):bash
 npx serve docs
 # or: python -m http.server -d docs
 
-Open the printed URL. Hard-refresh after changes: Ctrl+Shift+R.License & creditsThis project’s codeSource under docs/*.html, mandachord_core/, and project scripts: MIT (see LICENSE), unless noted otherwise.Third-partyLibrary
+Open the printed URL. Hard-refresh after changes: Ctrl+Shift+R.
+License & creditsThis project’s codeSource under docs/*.html, mandachord_core/, 
+and project scripts: MIT (see LICENSE), unless noted otherwise.
 
-License
+Third-partyLibrary                           License
 Tone.js                                      MIT © Yotam Mann
 @tonejs/midi                                 MIT
 @spotify/basic-pitch (incl. model)           Apache-2.0 © Spotify AB
