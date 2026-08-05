@@ -4,8 +4,8 @@ Unofficial browser tool: **audio / MIDI → Warframe Mandachord grid**.
 
 Upload a short melody (or MIDI), get notes, map them onto a 13×64 Mandachord-style grid, preview with instrument packs, export MIDI or PNG.
 
-**Live:** https://corwintv.github.io/Mandarin/  
-**Repo:** https://github.com/CorwinTV/Mandarin  
+**Live:**   https://corwintv.github.io/Mandarin/  
+**Repo:**   https://github.com/CorwinTV/Mandarin  
 
 > **Fan project.** Not affiliated with, endorsed by, or associated with Digital Extremes Ltd.  
 > Warframe® and Mandachord are trademarks / IP of Digital Extremes.  
