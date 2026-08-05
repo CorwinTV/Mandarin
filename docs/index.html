@@ -101,7 +101,7 @@
       outputToNotesPoly,
       addPitchBendsToNoteEvents,
       noteFramesToTime
-    } from "https://esm.sh/@spotify/basic-pitch@1.0.1";
+    } from "./vendor/basic-pitch.js";
     import { Midi } from "./vendor/midi.js";
 
     const fileInput = document.getElementById("fileInput");
@@ -157,9 +157,7 @@
       }
 
       setProgress(15, "Loading Basic Pitch…");
-      const basicPitch = new BasicPitch(
-        "https://unpkg.com/@spotify/basic-pitch@1.0.1/model/model.json"
-      );
+      const basicPitch = new BasicPitch("./vendor/basic-pitch/model/model.json");
       const frames = [], onsets = [], contours = [];
 
       setProgress(25, "Analyzing…");
