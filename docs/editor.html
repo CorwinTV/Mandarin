@@ -239,7 +239,8 @@
   <div class="status" id="status"></div>
 
   <script type="module">
-    import { Midi } from "./vendor/midi.js";
+    import MidiPkg from "./vendor/midi.js";
+    const Midi = MidiPkg.Midi ?? MidiPkg;
     import init, {
       create_empty_grid,
       place_notes_direct

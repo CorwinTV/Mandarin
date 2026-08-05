@@ -102,7 +102,8 @@
       addPitchBendsToNoteEvents,
       noteFramesToTime
     } from "./vendor/basic-pitch.js";
-    import { Midi } from "./vendor/midi.js";
+    import MidiPkg from "./vendor/midi.js";
+    const Midi = MidiPkg.Midi ?? MidiPkg;
 
     const fileInput = document.getElementById("fileInput");
     const uploadLabel = document.getElementById("uploadLabel");
