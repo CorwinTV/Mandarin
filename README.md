@@ -67,10 +67,10 @@ mandarin/
 ```
 
 Local previewServe the docs folder over HTTP (modules / WASM need a server):
-
+```
 npx serve docs
 # or: python -m http.server -d docs
-
+```
 Open the printed URL. Hard-refresh after changes: Ctrl+Shift+R.
 License & creditsThis project’s codeSource under docs/*.html, mandachord_core/, 
 and project scripts: MIT (see LICENSE), unless noted otherwise.
