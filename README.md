@@ -72,7 +72,10 @@ npx serve docs
 # or: python -m http.server -d docs
 ```
 Open the printed URL. Hard-refresh after changes: Ctrl+Shift+R.
-License & creditsThis project’s codeSource under docs/*.html, mandachord_core/, 
+
+##License & credits
+
+This project’s codeSource under docs/*.html, mandachord_core/, 
 and project scripts: MIT (see LICENSE), unless noted otherwise.
 
 Third-partyLibrary                           License
