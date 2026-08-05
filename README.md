@@ -78,11 +78,12 @@ Open the printed URL. Hard-refresh after changes: Ctrl+Shift+R.
 This project’s codeSource under docs/*.html, mandachord_core/, 
 and project scripts: MIT (see LICENSE), unless noted otherwise.
 
-|Third-partyLibrary                           |License
-|Tone.js                                      |MIT © Yotam Mann
-|@tonejs/midi                                 |MIT
-|@spotify/basic-pitch (incl. model)           |Apache-2.0 © Spotify AB
-|TensorFlow.js (bundled with Basic Pitch)     |Apache-2.0 © Google
+|Third-partyLibrary                           |License                  |
+|---------------------------------------------|-------------------------|
+|Tone.js                                      |MIT © Yotam Mann         |
+|@tonejs/midi                                 |MIT                      |
+|@spotify/basic-pitch (incl. model)           |Apache-2.0 © Spotify AB  |
+|TensorFlow.js (bundled with Basic Pitch)     |Apache-2.0 © Google      |
 
 Copies of notices may live under NOTICE / docs/licenses/.
 
