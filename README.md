@@ -9,7 +9,7 @@ Upload a short melody (or MIDI), get notes, map them onto a 13×64 Mandachord-st
 
 > **Fan project.** Not affiliated with, endorsed by, or associated with Digital Extremes Ltd.  
 > Warframe® and Mandachord are trademarks / IP of Digital Extremes.  
-> Non-commercial use only. See [License & credits](##license--credits).
+> Non-commercial use only. See [License & credits](#license--credits).
 
 ## Features
 
