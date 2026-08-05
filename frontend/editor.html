@@ -1,0 +1,753 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mandarin — Editor</title>
+  <link rel="icon" href="mandarin.png" type="image/png">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: #0a0a0a;
+      color: #e0e0e0;
+      min-height: 100vh;
+      padding: 20px;
+    }
+    .header { text-align: center; margin-bottom: 16px; }
+    .header h1 { font-size: 24px; font-weight: 500; }
+
+    .instruments {
+      display: flex;
+      justify-content: center;
+      gap: 28px;
+      margin-bottom: 12px;
+      flex-wrap: wrap;
+    }
+    .instrument {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+    }
+    .instrument label { font-size: 12px; color: #999; }
+    select {
+      background: #1a1a1a;
+      color: #fff;
+      border: 1px solid #333;
+      padding: 6px 10px;
+      border-radius: 6px;
+      font-size: 13px;
+      min-width: 140px;
+    }
+
+    .mode-bar {
+      display: flex;
+      justify-content: center;
+      gap: 14px;
+      margin-bottom: 14px;
+      flex-wrap: wrap;
+    }
+    .mode-bar label {
+      font-size: 12px;
+      color: #aaa;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+    }
+
+    .section-title {
+      text-align: center;
+      font-size: 13px;
+      color: #888;
+      margin: 20px 0 10px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .roll-wrap {
+      position: relative;
+      max-width: 960px;
+      margin: 0 auto;
+      height: 160px;
+      background: #111;
+      border: 1px solid #333;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    #pianoRoll {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+    .playhead-roll {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      width: 2px;
+      background: #ff4d4d;
+      box-shadow: 0 0 6px #ff4d4d;
+      left: 0;
+      display: none;
+      pointer-events: none;
+    }
+    .midi-actions {
+      text-align: center;
+      margin-top: 12px;
+    }
+
+    .grid-container {
+      display: flex;
+      justify-content: center;
+      gap: 6px;
+      overflow-x: auto;
+      padding-bottom: 10px;
+    }
+    .row-labels {
+      display: flex;
+      flex-direction: column;
+      gap: 1px;
+      padding-top: 1px;
+    }
+    .row-label {
+      height: 15px;
+      font-size: 9px;
+      color: #777;
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      padding-right: 5px;
+      width: 40px;
+    }
+    .grid-wrapper { position: relative; display: inline-block; }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(64, 14px);
+      gap: 1px;
+      background: #111;
+      border: 1px solid #333;
+    }
+    .cell {
+      width: 14px;
+      height: 14px;
+      background: #1c1c1c;
+      background-size: contain;
+      background-repeat: no-repeat;
+      background-position: center;
+    }
+    #mandachordGrid .cell { cursor: pointer; }
+    #mandachordGrid .cell:hover { background-color: #2a2a2a; }
+    .cell.active-perc { background-color: #2a2a2a; }
+    .cell.active-bass { background-color: #1a3a38; }
+    .cell.active-mel  { background-color: #3a1a3a; }
+    .cell.bar-start  { border-left: 2px solid #666 !important; }
+    .cell.beat-start { border-left: 1px solid #3a3a3a !important; }
+    .cell.section-end { border-bottom: 2px solid #555 !important; }
+
+    .playhead-grid {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 2px;
+      height: 100%;
+      background: #ff4d4d;
+      box-shadow: 0 0 6px #ff4d4d;
+      pointer-events: none;
+      z-index: 10;
+      display: none;
+    }
+
+    .actions { text-align: center; margin-top: 24px; }
+    button {
+      background: #fff;
+      color: #000;
+      border: none;
+      padding: 10px 22px;
+      font-size: 14px;
+      font-weight: 500;
+      border-radius: 8px;
+      cursor: pointer;
+      margin: 0 5px;
+    }
+    button:hover { background: #ddd; }
+    button.playing { background: #ff4d4d; color: #fff; }
+    button:disabled { opacity: 0.4; cursor: default; }
+
+    .status {
+      text-align: center;
+      margin-top: 10px;
+      font-size: 12px;
+      color: #666;
+      min-height: 18px;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1 id="songTitle">Untitled</h1>
+  </div>
+
+  <div class="section-title">Detected MIDI</div>
+  <div class="roll-wrap">
+    <canvas id="pianoRoll"></canvas>
+    <div class="playhead-roll" id="playheadRoll"></div>
+  </div>
+  <div class="midi-actions">
+    <button id="playMidiBtn">Play</button>
+    <button id="saveMidiBtn">Save MIDI</button>
+  </div>
+
+  <div class="section-title">Mandachord Grid (editable)</div>
+
+  <div class="instruments">
+    <div class="instrument">
+      <label>Percussion</label>
+      <select id="percPack"></select>
+    </div>
+    <div class="instrument">
+      <label>Bass</label>
+      <select id="bassPack"></select>
+    </div>
+    <div class="instrument">
+      <label>Melody</label>
+      <select id="melPack"></select>
+    </div>
+  </div>
+
+  <div class="mode-bar">
+    <label><input type="radio" name="mode" value="lead" checked> Lead</label>
+    <label><input type="radio" name="mode" value="bass_riff"> Bass riff</label>
+    <label><input type="radio" name="mode" value="lead_bass"> Lead + Bass</label>
+    <label><input type="radio" name="mode" value="full"> Full (beat)</label>
+  </div>
+
+  <div class="grid-container">
+    <div class="row-labels" id="mandachordLabels"></div>
+    <div class="grid-wrapper">
+      <div class="grid" id="mandachordGrid"></div>
+      <div class="playhead-grid" id="playheadGrid"></div>
+    </div>
+  </div>
+
+  <div class="actions">
+    <button id="playGridBtn">Play Grid</button>
+    <button id="pngBtn">Save PNG</button>
+    <button onclick="location.href='index.html'">New Song</button>
+  </div>
+  <div class="status" id="status"></div>
+
+  <script type="module">
+    import { Midi } from "https://esm.sh/@tonejs/midi@2.0.28";
+    import init, {
+      create_empty_grid,
+      place_notes_direct
+    } from "./pkg/mandachord_core.js";
+
+    await init();
+
+    const INSTRUMENTS = {
+      adau:    { name: "Adau",    pack: "BardTennoPackA" },
+      alpha:   { name: "Alpha",   pack: "BardCorpusPackA" },
+      beta:    { name: "Beta",    pack: "BardCorpusPackB" },
+      bombast: { name: "Bombast", pack: "BardHipHopPackA" },
+      delta:   { name: "Delta",   pack: "BardCorpusPackC" },
+      druk:    { name: "Druk",    pack: "BardGrineerPackA" },
+      epsilon: { name: "Epsilon", pack: "BardCorpusPackD" },
+      gamma:   { name: "Gamma",   pack: "BardGrineerPackB" },
+      horos:   { name: "Horos",   pack: "BardHorosPackA" },
+      plogg:   { name: "Plogg",   pack: "BardInfestedPackA" }
+    };
+    const KEYS = Object.keys(INSTRUMENTS);
+
+    function fillSelect(sel) {
+      KEYS.forEach(k => {
+        const o = document.createElement("option");
+        o.value = k;
+        o.textContent = INSTRUMENTS[k].name;
+        sel.appendChild(o);
+      });
+    }
+
+    const percSel = document.getElementById("percPack");
+    const bassSel = document.getElementById("bassPack");
+    const melSel  = document.getElementById("melPack");
+    fillSelect(percSel);
+    fillSelect(bassSel);
+    fillSelect(melSel);
+    percSel.value = "druk";
+    bassSel.value = "druk";
+    melSel.value  = "adau";
+
+    const titleEl = document.getElementById("songTitle");
+    const statusEl = document.getElementById("status");
+    const filename = localStorage.getItem("mandarin_filename") || "Untitled";
+    titleEl.textContent = filename.replace(/\.[^/.]+$/, "");
+
+    let rawNotes = [];
+    try {
+      rawNotes = JSON.parse(localStorage.getItem("mandarin_notes") || "[]");
+    } catch (_) {}
+
+    const labels = ["Kick","Snare","Hat","D","F","G","A","C","D","F","G","A","C"];
+    const labelsEl = document.getElementById("mandachordLabels");
+    labels.forEach(t => {
+      const d = document.createElement("div");
+      d.className = "row-label";
+      d.textContent = t;
+      labelsEl.appendChild(d);
+    });
+
+    const mandachord = create_empty_grid();
+    const gridEl = document.getElementById("mandachordGrid");
+    const NOTE_ICONS = {
+      0: "img/note-perc-1.png",
+      1: "img/note-perc-2.png",
+      2: "img/note-perc-3.png",
+      bass: "img/note-bass.png",
+      mel: "img/note-mel.png"
+    };
+
+    for (let row = 0; row < 13; row++) {
+      for (let col = 0; col < 64; col++) {
+        const cell = document.createElement("div");
+        cell.className = "cell";
+        if (col % 16 === 0) cell.classList.add("bar-start");
+        else if (col % 4 === 0) cell.classList.add("beat-start");
+        if (row === 2 || row === 7) cell.classList.add("section-end");
+        cell.addEventListener("click", () => {
+          mandachord.toggle(row, col);
+          paintCell(cell, row, col);
+          previewRow(row);
+        });
+        gridEl.appendChild(cell);
+      }
+    }
+
+    function paintCell(cell, row, col) {
+      const on = mandachord.get(row, col);
+      cell.classList.remove("active-perc", "active-bass", "active-mel");
+      cell.style.backgroundImage = "";
+      if (!on) return;
+      if (row < 3) {
+        cell.classList.add("active-perc");
+        if (NOTE_ICONS[row]) cell.style.backgroundImage = `url(${NOTE_ICONS[row]})`;
+      } else if (row < 8) {
+        cell.classList.add("active-bass");
+        if (NOTE_ICONS.bass) cell.style.backgroundImage = `url(${NOTE_ICONS.bass})`;
+      } else {
+        cell.classList.add("active-mel");
+        if (NOTE_ICONS.mel) cell.style.backgroundImage = `url(${NOTE_ICONS.mel})`;
+      }
+    }
+
+    function refreshGrid() {
+      for (let r = 0; r < 13; r++) {
+        for (let c = 0; c < 64; c++) {
+          paintCell(gridEl.children[r * 64 + c], r, c);
+        }
+      }
+    }
+
+    const players = {};
+
+    function sampleUrl(inst, row) {
+      return `mp3-hifi/${inst}-${row + 1}-a.mp3`;
+    }
+
+    function instForRow(row) {
+      if (row < 3) return percSel.value;
+      if (row < 8) return bassSel.value;
+      return melSel.value;
+    }
+
+    async function ensureSamples(inst) {
+      if (players[inst]) return;
+      const arr = [];
+      for (let r = 0; r < 13; r++) {
+        const p = new Tone.Player({
+          url: sampleUrl(inst, r),
+          onerror: () => {}
+        }).toDestination();
+        p.volume.value = -4;
+        arr[r] = p;
+      }
+      players[inst] = arr;
+      try { await Tone.loaded(); } catch (_) {}
+    }
+
+    async function preloadPacks() {
+      statusEl.textContent = "Loading samples…";
+      await Promise.all([
+        ensureSamples(percSel.value),
+        ensureSamples(bassSel.value),
+        ensureSamples(melSel.value)
+      ]);
+      statusEl.textContent =
+        `Ready · ${rawNotes.length} notes · Perc ${INSTRUMENTS[percSel.value].name}`;
+    }
+
+    function playRow(row, time) {
+      const bank = players[instForRow(row)];
+      if (!bank?.[row]) return;
+      try {
+        bank[row].start(time);
+      } catch (_) {
+        try {
+          bank[row].stop();
+          bank[row].start(time);
+        } catch (_) {}
+      }
+    }
+
+    function previewRow(row) {
+      if (Tone.context.state !== "running") Tone.start();
+      ensureSamples(instForRow(row)).then(() => {
+        const bank = players[instForRow(row)];
+        try { bank[row].stop(); } catch (_) {}
+        try { bank[row].start(); } catch (_) {}
+      });
+    }
+
+    percSel.onchange = bassSel.onchange = melSel.onchange = () => preloadPacks();
+
+    const canvas = document.getElementById("pianoRoll");
+    const playheadRoll = document.getElementById("playheadRoll");
+
+    function drawRoll() {
+      const dpr = window.devicePixelRatio || 1;
+      const w = canvas.clientWidth || 900;
+      const h = canvas.clientHeight || 160;
+      canvas.width = w * dpr;
+      canvas.height = h * dpr;
+      const ctx = canvas.getContext("2d");
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      ctx.fillStyle = "#111";
+      ctx.fillRect(0, 0, w, h);
+
+      if (!rawNotes.length) {
+        ctx.fillStyle = "#555";
+        ctx.font = "13px sans-serif";
+        ctx.textAlign = "center";
+        ctx.fillText("No notes", w / 2, h / 2);
+        return;
+      }
+
+      const maxT = Math.max(8, ...rawNotes.map(n => n.end || n.start + 0.2));
+      const minM = Math.min(...rawNotes.map(n => n.midi));
+      const maxM = Math.max(...rawNotes.map(n => n.midi));
+      const span = Math.max(12, maxM - minM + 2);
+
+      ctx.strokeStyle = "#1f1f1f";
+      for (let i = 0; i <= 8; i++) {
+        const x = (i / 8) * w;
+        ctx.beginPath();
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x, h);
+        ctx.stroke();
+      }
+
+      rawNotes.forEach(n => {
+        const x = (n.start / maxT) * w;
+        const dur = Math.max(0.05, (n.end ?? n.start + 0.15) - n.start);
+        const nw = Math.max(2, (dur / maxT) * w);
+        const y = (1 - (n.midi - minM + 1) / span) * (h - 8) + 2;
+        const nh = Math.max(4, h / span - 1);
+        ctx.fillStyle = n.midi < 60 ? "#4ecdc4" : "#c445c4";
+        ctx.fillRect(x, y, nw, nh);
+      });
+    }
+
+    window.addEventListener("resize", drawRoll);
+    drawRoll();
+
+    function interpret(mode) {
+      const times = rawNotes.map(n => n.start);
+      const midis = rawNotes.map(n => n.midi);
+      const durs  = rawNotes.map(n => (n.end != null ? n.end - n.start : 0.15));
+      place_notes_direct(
+        mandachord,
+        Float64Array.from(times),
+        Uint8Array.from(midis),
+        Float64Array.from(durs),
+        mode
+      );
+      refreshGrid();
+      statusEl.textContent = `Mode: ${mode} · ${rawNotes.length} notes`;
+    }
+
+    interpret("lead");
+    document.querySelectorAll('input[name="mode"]').forEach(r => {
+      r.addEventListener("change", () => {
+        if (r.checked) interpret(r.value);
+      });
+    });
+
+    await preloadPacks();
+
+    // ===== MIDI Play (loop until Pause) =====
+    let midiPlaying = false;
+    let rollTimer = null;
+    let midiSynth = null;
+    const playMidiBtn = document.getElementById("playMidiBtn");
+
+    function stopMidi() {
+      Tone.Transport.stop();
+      Tone.Transport.cancel();
+      Tone.Transport.loop = false;
+      Tone.Transport.position = 0;
+      if (midiSynth) {
+        try { midiSynth.dispose(); } catch (_) {}
+        midiSynth = null;
+      }
+      midiPlaying = false;
+      playMidiBtn.textContent = "Play";
+      playMidiBtn.classList.remove("playing");
+      playheadRoll.style.display = "none";
+      if (rollTimer) {
+        clearInterval(rollTimer);
+        rollTimer = null;
+      }
+    }
+
+    playMidiBtn.onclick = async () => {
+      if (midiPlaying) {
+        stopMidi();
+        return;
+      }
+      if (!rawNotes.length) return;
+      stopGrid();
+      await Tone.start();
+
+      midiSynth = new Tone.PolySynth(Tone.Synth, {
+        oscillator: { type: "triangle" },
+        envelope: { attack: 0.01, decay: 0.1, sustain: 0.3, release: 0.2 }
+      }).toDestination();
+      midiSynth.volume.value = -8;
+
+      const maxT = Math.max(8, ...rawNotes.map(n => n.end || n.start + 0.2));
+      const loopEnd = maxT + 0.05;
+
+      Tone.Transport.loop = true;
+      Tone.Transport.loopStart = 0;
+      Tone.Transport.loopEnd = loopEnd;
+      Tone.Transport.position = 0;
+
+      rawNotes.forEach(n => {
+        const dur = Math.max(0.05, (n.end ?? n.start + 0.15) - n.start);
+        Tone.Transport.schedule(time => {
+          if (!midiSynth) return;
+          midiSynth.triggerAttackRelease(
+            Tone.Frequency(n.midi, "midi").toFrequency(),
+            dur,
+            time
+          );
+        }, n.start);
+      });
+
+      midiPlaying = true;
+      playMidiBtn.textContent = "Pause";
+      playMidiBtn.classList.add("playing");
+      playheadRoll.style.display = "block";
+      Tone.Transport.start();
+
+      rollTimer = setInterval(() => {
+        const t = Tone.Transport.seconds % loopEnd;
+        playheadRoll.style.left = (Math.min(1, t / maxT) * 100) + "%";
+      }, 40);
+    };
+
+    // ===== Save MIDI =====
+    document.getElementById("saveMidiBtn").onclick = () => {
+      if (!rawNotes.length) return;
+      const midi = new Midi();
+      midi.header.setTempo(120);
+      const track = midi.addTrack();
+      rawNotes.forEach(n => {
+        track.addNote({
+          midi: n.midi,
+          time: n.start,
+          duration: Math.max(0.05, (n.end ?? n.start + 0.15) - n.start)
+        });
+      });
+      const blob = new Blob([midi.toArray()], { type: "audio/midi" });
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = (titleEl.textContent || "mandarin") + ".mid";
+      a.click();
+      URL.revokeObjectURL(a.href);
+      statusEl.textContent = "MIDI saved";
+    };
+
+    // ===== Play Grid =====
+    const playGridBtn = document.getElementById("playGridBtn");
+    const playheadGrid = document.getElementById("playheadGrid");
+    let gridPlaying = false;
+    let gridScheduled = [];
+    let gridTimer = null;
+    const STEP = 0.125;
+    const LOOP_END = 64 * STEP;
+
+    function stopGrid() {
+      if (gridTimer) {
+        clearInterval(gridTimer);
+        gridTimer = null;
+      }
+      Tone.Transport.stop();
+      Tone.Transport.cancel();
+      Tone.Transport.loop = false;
+      gridScheduled.forEach(id => Tone.Transport.clear(id));
+      gridScheduled = [];
+      Object.values(players).forEach(bank =>
+        bank.forEach(p => {
+          try { p.stop(); } catch (_) {}
+        })
+      );
+      playheadGrid.style.display = "none";
+      playGridBtn.textContent = "Play Grid";
+      playGridBtn.classList.remove("playing");
+      gridPlaying = false;
+    }
+
+    playGridBtn.onclick = async () => {
+      if (gridPlaying) {
+        stopGrid();
+        return;
+      }
+      stopMidi();
+      await Tone.start();
+      await preloadPacks();
+      gridPlaying = true;
+      playGridBtn.textContent = "Pause";
+      playGridBtn.classList.add("playing");
+      Tone.Transport.position = 0;
+      Tone.Transport.loop = true;
+      Tone.Transport.loopStart = 0;
+      Tone.Transport.loopEnd = LOOP_END;
+      gridScheduled = [];
+      for (let col = 0; col < 64; col++) {
+        const t = col * STEP;
+        for (let row = 0; row < 13; row++) {
+          if (mandachord.get(row, col)) {
+            gridScheduled.push(
+              Tone.Transport.schedule(time => playRow(row, time), t)
+            );
+          }
+        }
+      }
+      playheadGrid.style.display = "block";
+      Tone.Transport.start();
+      gridTimer = setInterval(() => {
+        const t = Tone.Transport.seconds % LOOP_END;
+        playheadGrid.style.left = ((t / LOOP_END) * (64 * 15)) + "px";
+      }, 40);
+    };
+
+    // ===== Save PNG =====
+    document.getElementById("pngBtn").onclick = () => {
+      const cellSize = 14;
+      const labelW = 48;
+      const pad = 16;
+      const titleH = 28;
+      const subH = 22;
+      const cols = 64;
+      const rows = 13;
+
+      const w = pad * 2 + labelW + cols * cellSize;
+      const h = pad * 2 + titleH + subH + rows * cellSize + 20;
+
+      const c = document.createElement("canvas");
+      c.width = w;
+      c.height = h;
+      const ctx = c.getContext("2d");
+
+      ctx.fillStyle = "#0a0a0a";
+      ctx.fillRect(0, 0, w, h);
+
+      ctx.fillStyle = "#e0e0e0";
+      ctx.font = "600 16px sans-serif";
+      ctx.textAlign = "center";
+      ctx.fillText(titleEl.textContent || "Mandachord", w / 2, pad + 14);
+
+      const percName = INSTRUMENTS[percSel.value].name;
+      const bassName = INSTRUMENTS[bassSel.value].name;
+      const melName  = INSTRUMENTS[melSel.value].name;
+      ctx.font = "12px sans-serif";
+      ctx.fillStyle = "#888";
+      ctx.fillText(
+        `Perc: ${percName}  ·  Bass: ${bassName}  ·  Mel: ${melName}`,
+        w / 2,
+        pad + titleH + 4
+      );
+
+      const gx = pad + labelW;
+      const gy = pad + titleH + subH + 8;
+
+      ctx.textAlign = "right";
+      ctx.font = "10px sans-serif";
+      ctx.fillStyle = "#777";
+      labels.forEach((t, r) => {
+        ctx.fillText(t, gx - 6, gy + r * cellSize + 11);
+      });
+
+      for (let r = 0; r < rows; r++) {
+        for (let col = 0; col < cols; col++) {
+          const x = gx + col * cellSize;
+          const y = gy + r * cellSize;
+          const on = mandachord.get(r, col);
+          if (on) {
+            if (r < 3) ctx.fillStyle = "#d0d0d0";
+            else if (r < 8) ctx.fillStyle = "#4ecdc4";
+            else ctx.fillStyle = "#c445c4";
+          } else {
+            ctx.fillStyle = "#1c1c1c";
+          }
+          ctx.fillRect(x, y, cellSize - 1, cellSize - 1);
+        }
+      }
+
+      for (let col = 0; col <= cols; col++) {
+        if (col % 4 !== 0) continue;
+        const x = gx + col * cellSize;
+        const strong = col % 16 === 0;
+        ctx.strokeStyle = strong
+          ? "rgba(255,255,255,0.35)"
+          : "rgba(255,255,255,0.12)";
+        ctx.lineWidth = strong ? 2 : 1;
+        ctx.beginPath();
+        ctx.moveTo(x, gy);
+        ctx.lineTo(x, gy + rows * cellSize);
+        ctx.stroke();
+      }
+
+      ctx.strokeStyle = "rgba(255,255,255,0.2)";
+      ctx.lineWidth = 2;
+      [3, 8].forEach(r => {
+        const y = gy + r * cellSize;
+        ctx.beginPath();
+        ctx.moveTo(gx, y);
+        ctx.lineTo(gx + cols * cellSize, y);
+        ctx.stroke();
+      });
+
+      ctx.strokeStyle = "#333";
+      ctx.lineWidth = 1;
+      ctx.strokeRect(gx - 0.5, gy - 0.5, cols * cellSize, rows * cellSize);
+
+      const name = (titleEl.textContent || "mandachord")
+        .replace(/[^\w\-]+/g, "_")
+        .slice(0, 40);
+
+      c.toBlob(blob => {
+        const a = document.createElement("a");
+        a.href = URL.createObjectURL(blob);
+        a.download = name + ".png";
+        a.click();
+        URL.revokeObjectURL(a.href);
+        statusEl.textContent = "PNG saved";
+      });
+    };
+  </script>
+</body>
+</html>
