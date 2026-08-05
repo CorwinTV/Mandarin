@@ -66,7 +66,7 @@ mandarin/
 └── mandachord_core/      # Rust sources (optional rebuild)
 ```
 
-#Local preview
+# Local preview
 
 Serve the docs folder over HTTP (modules / WASM need a server):
 ```
@@ -75,7 +75,7 @@ npx serve docs
 ```
 Open the printed URL. Hard-refresh after changes: Ctrl+Shift+R.
 
-##License & credits
+## License & credits
 
 This project’s codeSource under docs/*.html, mandachord_core/, 
 and project scripts: MIT (see LICENSE), unless noted otherwise.
