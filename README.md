@@ -49,8 +49,8 @@ Everything runs client-side. No backend, no upload of your files to a server.
 
 Vendored under `docs/vendor/` (no runtime CDN). GitHub Pages serves `docs/`.
 
-```
 ## Project layout
+```
 mandarin/
 ├── docs/                 # GitHub Pages root
 │   ├── index.html        # Upload
