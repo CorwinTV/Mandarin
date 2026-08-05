@@ -66,7 +66,9 @@ mandarin/
 └── mandachord_core/      # Rust sources (optional rebuild)
 ```
 
-Local previewServe the docs folder over HTTP (modules / WASM need a server):
+Local preview
+
+Serve the docs folder over HTTP (modules / WASM need a server):
 ```
 npx serve docs
 # or: python -m http.server -d docs
