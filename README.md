@@ -39,17 +39,17 @@ Everything runs client-side. No backend, no upload of your files to a server.
 
 ## Stack
 
-| Piece                                                                   | Role                |
-|--------                                                                 |------               |
+| Piece                                                                   | Role                                  |
+|--------                                                                 |------                                 |
 | Static HTML / JS | UI |
-| [Tone.js](https://tonejs.github.io/)                                    | Playback, transport |
-| [@tonejs/midi](https://github.com/Tonejs/Midi)                          | MIDI read/write     |
-| [@spotify/basic-pitch](https://github.com/spotify/basic-pitch-ts)       | Audio → notes (TF.js model) |
+| [Tone.js](https://tonejs.github.io/)                                    | Playback, transport                   |
+| [@tonejs/midi](https://github.com/Tonejs/Midi)                          | MIDI read/write                       |
+| [@spotify/basic-pitch](https://github.com/spotify/basic-pitch-ts)       | Audio → notes (TF.js model)           |
 | Rust → WASM (`mandachord_core`)                                         | Grid placement (`place_notes_direct`) |
 
 Vendored under `docs/vendor/` (no runtime CDN). GitHub Pages serves `docs/`.
 
-```markdown
+```
 ## Project layout
 mandarin/
 ├── docs/                 # GitHub Pages root
