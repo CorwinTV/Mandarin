@@ -26,7 +26,7 @@ Everything runs client-side. No backend, no upload of your files to a server.
 
 ## Usage
 
-1. Open the [site](https://corwintv.github.io/mandarin/).
+1. Open the [site](https://corwintv.github.io/Mandarin/).
 2. Upload **MP3 / WAV / OGG / M4A** or **MID / MIDI**.
 3. Wait for analysis (audio) or parse (MIDI).
 4. In the editor:
