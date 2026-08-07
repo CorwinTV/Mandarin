@@ -51,7 +51,7 @@ Vendored under `docs/vendor/` (no runtime CDN). GitHub Pages serves `docs/`.
 
 ## Project layout
 ```
-mandarin/
+Mandarin/
 ├── docs/                 # GitHub Pages root
 │   ├── index.html        # Upload
 │   ├── editor.html       # Piano roll + grid
