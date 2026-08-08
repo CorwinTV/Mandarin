@@ -1,0 +1,7 @@
+version: 2
+updates:
+  - package-ecosystem: "cargo"
+    directory: "/mandachord_core"   # путь к Cargo.toml / Cargo.lock
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
